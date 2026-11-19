@@ -46,7 +46,8 @@ export async function updateTask(id: string, _: TaskState, formData: FormData): 
   const userId = await authed();
   const parsed = read(formData);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  await db.task.updateMany({ where: { id, userId }, data: parsed.data });
+  // Muddat o'zgarsa, eslatma qaytadan yuborilishi uchun remindedAt tozalanadi
+  await db.task.updateMany({ where: { id, userId }, data: { ...parsed.data, remindedAt: null } });
   revalidatePath("/dashboard");
   return { ok: Date.now() };
 }

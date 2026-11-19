@@ -5,6 +5,8 @@ import { TaskForm } from "@/components/task-form";
 import { TaskItem, type TaskDTO } from "@/components/task-item";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
+import { todayStr } from "@/lib/dates";
+import { startTelegramLink, unlinkTelegram } from "@/lib/telegram-actions";
 import { clearCompleted } from "@/lib/task-actions";
 
 export const metadata = { title: "Mening vazifalarim — Vazifalar" };
@@ -39,7 +41,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
     db.task.count({ where: { userId: user.id, done: true } }),
   ]);
 
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tashkent" }).format(new Date());
+  const today = todayStr();
   const overdue = await db.task.count({
     where: { userId: user.id, done: false, dueDate: { lt: new Date(`${today}T00:00:00Z`) } },
   });
@@ -81,6 +83,33 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
           <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-all" style={{ width: `${percent}%` }} />
         </div>
+
+        {user.email && (
+          <section className="tg-hide card mt-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-500/10 text-sky-500">
+                <svg className="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <path d="M21.9 4.6 18.7 19.7c-.2 1-.9 1.3-1.7.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.5 13.5 1.8 12c-1-.3-1-1 .2-1.5L20.6 3.4c.9-.3 1.6.2 1.3 1.2z" />
+                </svg>
+              </span>
+              <div>
+                <p className="text-sm font-medium">
+                  {user.telegramId ? "Telegram ulangan ✓" : "Telegram'da eslatma oling"}
+                </p>
+                <p className="text-xs text-muted">
+                  {user.telegramId
+                    ? "Muddati yaqinlashgan vazifalar haqida botga xabar keladi."
+                    : "Botga ulang — muddat yaqinlashganda xabar yuboramiz."}
+                </p>
+              </div>
+            </div>
+            <form action={user.telegramId ? unlinkTelegram : startTelegramLink}>
+              <button className={user.telegramId ? "btn-ghost w-full sm:w-auto" : "btn-primary w-full sm:w-auto"}>
+                {user.telegramId ? "Uzish" : "Telegram'ni ulash"}
+              </button>
+            </form>
+          </section>
+        )}
 
         <div className="mt-6">
           <TaskForm />

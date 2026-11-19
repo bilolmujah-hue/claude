@@ -40,7 +40,7 @@ export async function login(_: AuthState, formData: FormData): Promise<AuthState
   const { email, password } = parsed.data;
 
   const user = await db.user.findUnique({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+  if (!user?.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
     return { error: "Email yoki parol noto'g'ri" };
   }
   await createSession(user.id);

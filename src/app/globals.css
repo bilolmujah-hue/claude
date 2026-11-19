@@ -60,3 +60,8 @@ body {
 @utility card {
   @apply rounded-2xl border border-border bg-card shadow-sm;
 }
+
+/* Telegram Mini App ichida: mavzu Telegram'dan olinadi, chiqish tugmasi kerak emas */
+.tg .tg-hide {
+  display: none !important;
+}

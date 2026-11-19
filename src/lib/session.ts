@@ -16,7 +16,13 @@ function key() {
   return new TextEncoder().encode(secret);
 }
 
-export async function createSession(userId: string) {
+/**
+ * embedded=true — Telegram Web (web.telegram.org) Mini App'ni iframe ichida ochadi,
+ * shuning uchun cookie SameSite=None; Secure; Partitioned bo'lishi kerak.
+ * Server Actions Origin tekshiruvi CSRF'dan himoya qiladi.
+ */
+export async function createSession(userId: string, { embedded = false } = {}) {
+  const prod = process.env.NODE_ENV === "production";
   const token = await new SignJWT({ sub: userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -24,8 +30,9 @@ export async function createSession(userId: string) {
     .sign(key());
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: prod,
+    sameSite: embedded && prod ? "none" : "lax",
+    partitioned: embedded && prod,
     path: "/",
     maxAge: MAX_AGE,
   });
@@ -51,7 +58,7 @@ export const getCurrentUser = cache(async () => {
   if (!id) return null;
   return db.user.findUnique({
     where: { id },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, telegramId: true },
   });
 });
 

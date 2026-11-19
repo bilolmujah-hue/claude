@@ -11,11 +11,13 @@ export async function Header() {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4">
         <Logo />
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <div className="tg-hide">
+            <ThemeToggle />
+          </div>
           {user ? (
             <>
               <span className="hidden max-w-40 truncate text-sm text-muted sm:block">{user.name}</span>
-              <form action={logout}>
+              <form action={logout} className="tg-hide">
                 <button className="btn-ghost h-10">Chiqish</button>
               </form>
             </>
